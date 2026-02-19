@@ -1,19 +1,19 @@
 package kr.jhsh.testcompose.presentation.posts
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kr.jhsh.testcompose.domain.usecase.GetPostsUseCase
 import kr.jhsh.testcompose.presentation.base.BaseViewModel
+import javax.inject.Inject
 
 /**
- * [모듈 간 통신] Presentation ViewModel이 Domain UseCase 사용
- * - GetPostsUseCase는 domain 모듈에서 제공
- * - app 모듈에서 Repository를 생성하고 UseCase를 만들어 주입해야 함
- * - [통신 방향]: ViewModel -> domain.UseCase -> domain.Repository 인터페이스
+ * [Hilt DI] PostsViewModel - Presentation Layer
+ * - @HiltViewModel: Hilt가 ViewModel 의존성을 자동 주입
+ * - 생성자 주입을 통해 GetPostsUseCase 주입
  */
-class PostsViewModel(
+@HiltViewModel
+class PostsViewModel @Inject constructor(
     private val getPostsUseCase: GetPostsUseCase
 ) : BaseViewModel<PostsState, PostsIntent, PostsEffect>(PostsState()) {
 
@@ -32,11 +32,6 @@ class PostsViewModel(
         viewModelScope.launch {
             setState { copy(isLoading = true, error = null) }
 
-            /**
-             * [모듈 간 통신] UseCase 실행
-             * - domain.GetPostsUseCase를 통해 domain.PostRepository 호출
-             * - 실제 구현체는 data 모듈에 있으나, presentation은 domain 인터페이스만 의존
-             */
             getPostsUseCase()
                 .onSuccess { posts ->
                     setState { copy(isLoading = false, posts = posts) }
@@ -45,20 +40,6 @@ class PostsViewModel(
                     setState { copy(isLoading = false, error = throwable.message) }
                     sendEffect(PostsEffect.ShowToast("Error: ${throwable.message}"))
                 }
-        }
-    }
-
-    /**
-     * [중요] ViewModel Factory
-     * - app 모듈에서 UseCase를 주입받아 ViewModel 생성
-     * - DI 프레임워크 사용 시 더 깔끔하게 처리 가능
-     */
-    class Factory(
-        private val getPostsUseCase: GetPostsUseCase
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return PostsViewModel(getPostsUseCase) as T
         }
     }
 }

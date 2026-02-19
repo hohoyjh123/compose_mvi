@@ -2,13 +2,15 @@ package kr.jhsh.testcompose.domain.usecase
 
 import kr.jhsh.testcompose.domain.model.User
 import kr.jhsh.testcompose.domain.repository.UserRepository
+import javax.inject.Inject
 
 /**
- * [모듈 간 통신] UseCase (Domain 모듈)
+ * [Hilt DI] GetUsersUseCase (Domain 모듈)
+ * - 생성자 주입을 통해 UserRepository 의존성 주입
  * - presentation 모듈: ViewModel에서 이 UseCase를 주입받아 사용
- * - 내부적으로 domain 모듈의 UserRepository 인터페이스에 의존
  */
-class GetUsersUseCase(
+
+class GetUsersUseCase @Inject constructor(
     private val repository: UserRepository
 ) {
     suspend operator fun invoke(): Result<List<User>> {

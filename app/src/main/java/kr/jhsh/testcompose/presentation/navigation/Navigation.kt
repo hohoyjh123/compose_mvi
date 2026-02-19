@@ -10,7 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -19,9 +19,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import kr.jhsh.testcompose.data.di.AppModule
-import kr.jhsh.testcompose.domain.usecase.GetPostsUseCase
-import kr.jhsh.testcompose.domain.usecase.GetUsersUseCase
 import kr.jhsh.testcompose.presentation.posts.PostsScreen
 import kr.jhsh.testcompose.presentation.posts.PostsViewModel
 import kr.jhsh.testcompose.presentation.settings.SettingsScreen
@@ -29,26 +26,18 @@ import kr.jhsh.testcompose.presentation.users.UsersScreen
 import kr.jhsh.testcompose.presentation.users.UsersViewModel
 
 /**
- * [모듈 간 통신] 메인 네비게이션 - App 모듈에서 관리
+ * [Hilt DI] 메인 네비게이션 - App 모듈에서 관리
  * - presentation 모듈의 Screen들을 호스팅
- * - data 모듈의 DI를 통해 UseCase와 ViewModel Factory 생성
- * - [통신 흐름]:
- *   1. AppModule (data) -> Repository 생성
- *   2. Repository -> GetPostsUseCase/GetUsersUseCase 생성 (domain)
- *   3. UseCase -> ViewModel Factory에 주입 (presentation)
- *   4. ViewModel -> UI에 state/effect 제공 (presentation)
+ * - hiltViewModel()을 통해 자동으로 ViewModel 주입
+ * - [의존성 주입 흐름]:
+ *   1. AppModule (data) -> Network/Repository 제공
+ *   2. Repository -> UseCase 주입 (domain)
+ *   3. UseCase -> ViewModel 주입 (presentation via Hilt)
+ *   4. ViewModel -> UI에 state/effect 제공
  */
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
-
-    // [모듈 간 통신] Data 모듈의 DI를 통해 Repository 주입받아 UseCase 생성
-    val getPostsUseCase = GetPostsUseCase(AppModule.postRepository)
-    val getUsersUseCase = GetUsersUseCase(AppModule.userRepository)
-
-    // [모듈 간 통신] UseCase를 ViewModel Factory에 주입
-    val postsViewModelFactory = PostsViewModel.Factory(getPostsUseCase)
-    val usersViewModelFactory = UsersViewModel.Factory(getUsersUseCase)
 
     Scaffold(
         bottomBar = {
@@ -86,9 +75,7 @@ fun MainNavigation() {
     ) { innerPadding ->
         NavHostContainer(
             navController = navController,
-            paddingValues = innerPadding,
-            postsViewModelFactory = postsViewModelFactory,
-            usersViewModelFactory = usersViewModelFactory
+            paddingValues = innerPadding
         )
     }
 }
@@ -96,9 +83,7 @@ fun MainNavigation() {
 @Composable
 private fun NavHostContainer(
     navController: NavHostController,
-    paddingValues: PaddingValues,
-    postsViewModelFactory: PostsViewModel.Factory,
-    usersViewModelFactory: UsersViewModel.Factory
+    paddingValues: PaddingValues
 ) {
     NavHost(
         navController = navController,
@@ -106,16 +91,14 @@ private fun NavHostContainer(
         modifier = Modifier.padding(paddingValues)
     ) {
         composable<Screen.Posts> {
-            // [모듈 간 통신] Presentation 모듈의 Screen에 ViewModel Factory 주입
-            PostsScreen(
-                viewModel = viewModel(factory = postsViewModelFactory)
-            )
+            // [Hilt DI] hiltViewModel()로 자동 주입
+            val viewModel: PostsViewModel = hiltViewModel()
+            PostsScreen(viewModel = viewModel)
         }
         composable<Screen.Users> {
-            // [모듈 간 통신] Presentation 모듈의 Screen에 ViewModel Factory 주입
-            UsersScreen(
-                viewModel = viewModel(factory = usersViewModelFactory)
-            )
+            // [Hilt DI] hiltViewModel()로 자동 주입
+            val viewModel: UsersViewModel = hiltViewModel()
+            UsersScreen(viewModel = viewModel)
         }
         composable<Screen.Settings> {
             SettingsScreen()

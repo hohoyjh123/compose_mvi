@@ -19,4 +19,7 @@ dependencies {
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // JSR-330 for @Inject annotation
+    implementation("javax.inject:javax.inject:1")
 }
