@@ -21,5 +21,6 @@ data class Post(
     val city: String,         // City from location
     val pictureThumbnail: String,  // Thumbnail image URL
     val pictureLarge: String,      // Large image URL
+    val pictureMedium: String,     // Medium image URL
     val nationality: String     // Nationality code
 )

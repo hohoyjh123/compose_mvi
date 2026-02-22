@@ -1,5 +1,8 @@
 package kr.jhsh.testcompose.presentation.postdetail
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,13 +56,16 @@ import kr.jhsh.testcompose.domain.model.Post
  * Post 상세 페이지 (User Profile Detail)
  * - 목록에서 전달받은 Post 데이터를 표시
  * - 프로필 이미지, 연락처 정보, 위치 정보 등 표시
+ * - Shared Element Transition 지원
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun PostDetailScreen(
     post: Post,
     onNavigateBack: () -> Unit = {},
-    viewModel: PostDetailViewModel = hiltViewModel()
+    viewModel: PostDetailViewModel = hiltViewModel(),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
@@ -119,17 +125,22 @@ fun PostDetailScreen(
                     post = state.post!!,
                     modifier = Modifier
                         .padding(paddingValues)
-                        .verticalScroll(scrollState)
+                        .verticalScroll(scrollState),
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope
                 )
             }
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PostDetailContent(
     post: Post,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     Column(
         modifier = modifier
@@ -138,7 +149,11 @@ private fun PostDetailContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Profile Image Section
-        ProfileHeader(post = post)
+        ProfileHeader(
+            post = post,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = animatedVisibilityScope
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -157,21 +172,32 @@ private fun PostDetailContent(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun ProfileHeader(post: Post) {
+private fun ProfileHeader(
+    post: Post,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Large Profile Image
-        AsyncImage(
-            model = post.pictureLarge,
-            contentDescription = "Profile picture of ${post.name}",
-            modifier = Modifier
-                .size(150.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentScale = ContentScale.Crop
-        )
+        // Large Profile Image with Shared Element Transition
+        with(sharedTransitionScope ?: return@Column) {
+            AsyncImage(
+                model = post.pictureLarge,
+                contentDescription = "Profile picture of ${post.name}",
+                modifier = Modifier
+                    .size(150.dp)
+                    .sharedBounds(
+                        sharedContentState = rememberSharedContentState(key = "image-${post.id}"),
+                        animatedVisibilityScope = animatedVisibilityScope!!
+                    )
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentScale = ContentScale.Crop
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 

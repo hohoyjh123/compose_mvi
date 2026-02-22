@@ -1,5 +1,7 @@
 package kr.jhsh.testcompose.navigation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -21,7 +23,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import kotlin.reflect.typeOf
 import kr.jhsh.testcompose.domain.model.Post
 import kr.jhsh.testcompose.presentation.navigation.Screen
 import kr.jhsh.testcompose.presentation.navigation.bottomNavItems
@@ -31,6 +32,7 @@ import kr.jhsh.testcompose.presentation.posts.PostsViewModel
 import kr.jhsh.testcompose.presentation.settings.SettingsScreen
 import kr.jhsh.testcompose.presentation.users.UsersScreen
 import kr.jhsh.testcompose.presentation.users.UsersViewModel
+import kotlin.reflect.typeOf
 
 /**
  * [Hilt DI] 메인 네비게이션 - App 모듈에서 관리
@@ -51,85 +53,94 @@ fun MainNavigation() {
         typeOf<Post>() to PostType
     )
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
+    SharedTransitionLayout {
+        Scaffold(
+            bottomBar = {
+                NavigationBar {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentDestination = navBackStackEntry?.destination
 
-                bottomNavItems.forEach { item ->
-                    val isSelected = currentDestination?.hierarchy?.any {
-                        it.hasRoute(item.route::class)
-                    } == true
+                    bottomNavItems.forEach { item ->
+                        val isSelected = currentDestination?.hierarchy?.any {
+                            it.hasRoute(item.route::class)
+                        } == true
 
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = item.title
-                            )
-                        },
-                        label = { Text(item.title) },
-                        selected = isSelected,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                        NavigationBarItem(
+                            icon = {
+                                Icon(
+                                    imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                                    contentDescription = item.title
+                                )
+                            },
+                            label = { Text(item.title) },
+                            selected = isSelected,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
+        ) { innerPadding ->
+            NavHostContainer(
+                navController = navController,
+                paddingValues = innerPadding,
+                postTypeMap = postTypeMap
+            )
         }
-    ) { innerPadding ->
-        NavHostContainer(
-            navController = navController,
-            paddingValues = innerPadding,
-            postTypeMap = postTypeMap
-        )
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun NavHostContainer(
     navController: NavHostController,
     paddingValues: PaddingValues,
     postTypeMap: Map<kotlin.reflect.KType, NavType<*>>
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Posts,
-        modifier = Modifier.padding(paddingValues)
-    ) {
-        composable<Screen.Posts> {
-            // [Hilt DI] hiltViewModel()로 자동 주입
-            val viewModel: PostsViewModel = hiltViewModel()
-            PostsScreen(
-                viewModel = viewModel,
-                onPostClick = { post: Post ->
-                    navController.navigate(Screen.PostDetail(post))
-                }
-            )
-        }
-        composable<Screen.PostDetail>(
-            typeMap = postTypeMap
-        ) { backStackEntry ->
-            val postDetail: Screen.PostDetail = backStackEntry.toRoute()
-            PostDetailScreen(
-                post = postDetail.post,
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-        composable<Screen.Users> {
-            // [Hilt DI] hiltViewModel()로 자동 주입
-            val viewModel: UsersViewModel = hiltViewModel()
-            UsersScreen(viewModel = viewModel)
-        }
-        composable<Screen.Settings> {
-            SettingsScreen()
+    SharedTransitionLayout {
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Posts,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable<Screen.Posts> {
+                // [Hilt DI] hiltViewModel()로 자동 주입
+                val viewModel: PostsViewModel = hiltViewModel()
+                PostsScreen(
+                    viewModel = viewModel,
+                    onPostClick = { post: Post ->
+                        navController.navigate(Screen.PostDetail(post))
+                    },
+                    animatedVisibilityScope = this@composable,
+                    sharedTransitionScope = this@SharedTransitionLayout
+                )
+            }
+            composable<Screen.PostDetail>(
+                typeMap = postTypeMap
+            ) { backStackEntry ->
+                val postDetail: Screen.PostDetail = backStackEntry.toRoute()
+                PostDetailScreen(
+                    post = postDetail.post,
+                    onNavigateBack = { navController.popBackStack() },
+                    animatedVisibilityScope = this@composable,
+                    sharedTransitionScope = this@SharedTransitionLayout
+                )
+            }
+            composable<Screen.Users> {
+                // [Hilt DI] hiltViewModel()로 자동 주입
+                val viewModel: UsersViewModel = hiltViewModel()
+                UsersScreen(viewModel = viewModel)
+            }
+            composable<Screen.Settings> {
+                SettingsScreen()
+            }
         }
     }
 }

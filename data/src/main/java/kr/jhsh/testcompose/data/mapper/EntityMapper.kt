@@ -28,6 +28,7 @@ fun RandomUserDto.toDomain(): Post = Post(
     city = location.city,
     pictureThumbnail = picture.thumbnail,
     pictureLarge = picture.large,
+    pictureMedium = picture.medium,
     nationality = nationality
 )
 

@@ -1,5 +1,8 @@
 package kr.jhsh.testcompose.presentation.posts
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,12 +46,15 @@ import kr.jhsh.testcompose.domain.model.Post
  * - Post 모델은 domain 모듈에서 정의
  * - presentation 모듈이 domain 모듈에 의존하여 직접 사용
  * - Jetpack Paging 3 Compose 지원
+ * - Shared Element Transition 지원
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun PostsScreen(
     onPostClick: (Post) -> Unit = {},
-    viewModel: PostsViewModel
+    viewModel: PostsViewModel,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val posts = viewModel.posts.collectAsLazyPagingItems()
@@ -69,15 +77,20 @@ fun PostsScreen(
     ) {
         PostsListContent(
             posts = posts,
-            onPostClick = onPostClick
+            onPostClick = onPostClick,
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = animatedVisibilityScope
         )
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PostsListContent(
     posts: LazyPagingItems<Post>,
-    onPostClick: (Post) -> Unit
+    onPostClick: (Post) -> Unit,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -90,7 +103,12 @@ private fun PostsListContent(
         ) { index ->
             val post = posts[index]
             if (post != null) {
-                PostItem(post = post, onClick = { onPostClick(post) })
+                PostItem(
+                    post = post,
+                    onClick = { onPostClick(post) },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope
+                )
             }
         }
 
@@ -189,10 +207,13 @@ private fun ErrorContent(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PostItem(
     post: Post,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     Card(
         modifier = Modifier
@@ -206,12 +227,20 @@ private fun PostItem(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profile Image
-            AsyncImage(
-                model = post.pictureThumbnail,
-                contentDescription = "Profile picture of ${post.name}",
-                modifier = Modifier.size(64.dp)
-            )
+            // Profile Image with Shared Element Transition
+            with(sharedTransitionScope ?: return@Card) {
+                AsyncImage(
+                    model = post.pictureMedium,
+                    contentDescription = "Profile picture of ${post.name}",
+                    modifier = Modifier
+                        .size(64.dp)
+                        .sharedBounds(
+                            sharedContentState = rememberSharedContentState(key = "image-${post.id}"),
+                            animatedVisibilityScope = animatedVisibilityScope!!
+                        )
+                        .clip(CircleShape)
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
