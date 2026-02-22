@@ -133,7 +133,7 @@ private fun AppInfoSection() {
             HorizontalDivider()
             ListItem(
                 headlineContent = { Text("API Reference") },
-                supportingContent = { Text("https://jsonplaceholder.typicode.com/") },
+                supportingContent = { Text("https://jsonplaceholder.typicode.com/ \nhttps://randomuser.me/") },
                 leadingContent = {
                     Icon(Icons.Default.Info, contentDescription = null)
                 }

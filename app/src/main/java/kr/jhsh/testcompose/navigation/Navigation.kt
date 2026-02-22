@@ -48,42 +48,51 @@ import kotlin.reflect.typeOf
 fun MainNavigation() {
     val navController = rememberNavController()
 
-    // Post 객체 전달을 위한 typeMap
     val postTypeMap = mapOf(
         typeOf<Post>() to PostType
     )
 
+    // 현재 route 감지
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    // bottomBar를 보여줄 화면 정의
+    val showBottomBar = currentDestination?.hierarchy?.any {
+        it.hasRoute(Screen.Posts::class) ||
+                it.hasRoute(Screen.Users::class) ||
+                it.hasRoute(Screen.Settings::class)
+    } == true
+
     SharedTransitionLayout {
         Scaffold(
             bottomBar = {
-                NavigationBar {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination
+                if (showBottomBar) {   // 여기만 조건 추가
+                    NavigationBar {
+                        bottomNavItems.forEach { item ->
+                            val isSelected = currentDestination?.hierarchy?.any {
+                                it.hasRoute(item.route::class)
+                            } == true
 
-                    bottomNavItems.forEach { item ->
-                        val isSelected = currentDestination?.hierarchy?.any {
-                            it.hasRoute(item.route::class)
-                        } == true
-
-                        NavigationBarItem(
-                            icon = {
-                                Icon(
-                                    imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                                    contentDescription = item.title
-                                )
-                            },
-                            label = { Text(item.title) },
-                            selected = isSelected,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                            NavigationBarItem(
+                                icon = {
+                                    Icon(
+                                        imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                                        contentDescription = item.title
+                                    )
+                                },
+                                label = { Text(item.title) },
+                                selected = isSelected,
+                                onClick = {
+                                    navController.navigate(item.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
