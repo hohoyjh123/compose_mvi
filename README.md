@@ -240,11 +240,11 @@ compose_mvi/
 
 ### ✅ 구현된 기능
 
-| 기능 | 설명 | 기술 적용 |
-|------|------|----------|
-| **Posts** | JSONPlaceholder API를 통한 게시물 목록/상세 | MVI, Navigation |
-| **Users** | RandomUser API를 통한 사용자 목록 (무한 스크롤) | Paging 3, MVI |
-| **Settings** | 앱 설정 화면 | Compose |
+| 기능 | 설명 | 기술 적용                     |
+|------|------|---------------------------|
+| **Posts** | RandomUser API를 통한 사용자 목록 (무한 스크롤) 목록/상세 | Paging 3, MVI, Navigation |
+| **Users** | JSONPlaceholder API를 통한 게시물 | MVI             |
+| **Settings** | 앱 설정 화면 | Compose                   |
 
 ### 📱 화면 흐름
 
