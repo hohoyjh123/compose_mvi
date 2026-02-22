@@ -73,6 +73,9 @@ dependencies {
     // Navigation
     implementation(libs.navigation.compose)
 
+    // Serialization (for NavType)
+    implementation(libs.kotlinx.serialization.json)
+
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

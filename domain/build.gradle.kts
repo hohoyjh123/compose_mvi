@@ -22,4 +22,7 @@ dependencies {
 
     // JSR-330 for @Inject annotation
     implementation("javax.inject:javax.inject:1")
+
+    // Paging Common (Kotlin-only module support)
+    implementation(libs.paging.common)
 }

@@ -73,6 +73,13 @@ dependencies {
     // Serialization (for Navigation type safety)
     implementation(libs.kotlinx.serialization.json)
 
+    // Paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
+    // Coil (Image Loading)
+    implementation(libs.coil.compose)
+
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

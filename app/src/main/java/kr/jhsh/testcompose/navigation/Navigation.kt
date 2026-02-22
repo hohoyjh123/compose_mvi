@@ -1,4 +1,4 @@
-package kr.jhsh.testcompose.presentation.navigation
+package kr.jhsh.testcompose.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -15,10 +15,17 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import kotlin.reflect.typeOf
+import kr.jhsh.testcompose.domain.model.Post
+import kr.jhsh.testcompose.presentation.navigation.Screen
+import kr.jhsh.testcompose.presentation.navigation.bottomNavItems
+import kr.jhsh.testcompose.presentation.postdetail.PostDetailScreen
 import kr.jhsh.testcompose.presentation.posts.PostsScreen
 import kr.jhsh.testcompose.presentation.posts.PostsViewModel
 import kr.jhsh.testcompose.presentation.settings.SettingsScreen
@@ -38,6 +45,11 @@ import kr.jhsh.testcompose.presentation.users.UsersViewModel
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
+
+    // Post 객체 전달을 위한 typeMap
+    val postTypeMap = mapOf(
+        typeOf<Post>() to PostType
+    )
 
     Scaffold(
         bottomBar = {
@@ -75,7 +87,8 @@ fun MainNavigation() {
     ) { innerPadding ->
         NavHostContainer(
             navController = navController,
-            paddingValues = innerPadding
+            paddingValues = innerPadding,
+            postTypeMap = postTypeMap
         )
     }
 }
@@ -83,7 +96,8 @@ fun MainNavigation() {
 @Composable
 private fun NavHostContainer(
     navController: NavHostController,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    postTypeMap: Map<kotlin.reflect.KType, NavType<*>>
 ) {
     NavHost(
         navController = navController,
@@ -93,7 +107,21 @@ private fun NavHostContainer(
         composable<Screen.Posts> {
             // [Hilt DI] hiltViewModel()로 자동 주입
             val viewModel: PostsViewModel = hiltViewModel()
-            PostsScreen(viewModel = viewModel)
+            PostsScreen(
+                viewModel = viewModel,
+                onPostClick = { post: Post ->
+                    navController.navigate(Screen.PostDetail(post))
+                }
+            )
+        }
+        composable<Screen.PostDetail>(
+            typeMap = postTypeMap
+        ) { backStackEntry ->
+            val postDetail: Screen.PostDetail = backStackEntry.toRoute()
+            PostDetailScreen(
+                post = postDetail.post,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable<Screen.Users> {
             // [Hilt DI] hiltViewModel()로 자동 주입

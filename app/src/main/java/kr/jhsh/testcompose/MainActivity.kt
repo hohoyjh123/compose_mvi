@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import kr.jhsh.testcompose.presentation.navigation.MainNavigation
+import kr.jhsh.testcompose.navigation.MainNavigation
 import kr.jhsh.testcompose.ui.theme.TestComposeTheme
 
 /**

@@ -10,6 +10,8 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 
+import kr.jhsh.testcompose.domain.model.Post
+
 /**
  * Presentation 모듈 내부 네비게이션 라우트
  * - [모듈 간 통신] app 모듈에서 Navigation Host 구성에 사용
@@ -18,6 +20,9 @@ import kotlinx.serialization.Serializable
 sealed class Screen {
     @Serializable
     data object Posts : Screen()
+
+    @Serializable
+    data class PostDetail(val post: Post) : Screen()
 
     @Serializable
     data object Users : Screen()
