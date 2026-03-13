@@ -111,11 +111,11 @@ Side Effect 발생 시 Effect 전달 (Channel/SharedFlow)
 ## 기술 스택
 
 ### Core
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Kotlin | 2.1.0 | 주요 개발 언어 |
+| 기술 | 버전       | 용도 |
+|------|----------|------|
+| Kotlin | 2.2.0    | 주요 개발 언어 |
 | Jetpack Compose | 2026.01.00 | UI 프레임워크 |
-| Coroutines | 1.9.0 | 비동기 처리 |
+| Coroutines | 1.9.0    | 비동기 처리 |
 
 ### Architecture
 | 기술 | 용도 |
@@ -127,10 +127,10 @@ Side Effect 발생 시 Effect 전달 (Channel/SharedFlow)
 | **UseCase Pattern** | 비즈니스 로직 분리 |
 
 ### DI (Dependency Injection)
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Hilt | 2.55 | 의존성 주입 |
-| KSP | 2.1.0-1.0.29 | Annotation Processing |
+| 기술 | 버전    | 용도 |
+|------|-------|------|
+| Hilt | 2.55  | 의존성 주입 |
+| KSP | 2.3.2 | Annotation Processing |
 
 ### Network
 | 기술 | 버전 | 용도 |
