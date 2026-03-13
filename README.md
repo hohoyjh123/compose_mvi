@@ -1,10 +1,10 @@
-# 📱 Compose MVI Study Project
+# Compose MVI Study Project
 
 > **Jetpack Compose + MVI + Clean Architecture + Multi Module**을 학습하기 위한 Android 스터디 프로젝트입니다.
 
 ---
 
-## 🏗️ 아키텍처 개요
+## 아키텍처 개요
 
 이 프로젝트는 **Clean Architecture**와 **MVI (Model-View-Intent)** 패턴을 기반으로 하며,
 **Multi Module** 구조로 분리되어 있습니다.
@@ -45,7 +45,7 @@
 
 ---
 
-## 📦 모듈 구조
+## 모듈 구조
 
 | 모듈 | 타입 | 설명 | 의존성 |
 |------|------|------|--------|
@@ -67,7 +67,7 @@ app → presentation → domain ← data
 
 ---
 
-## 🎯 MVI 패턴 구현
+## MVI 패턴 구현
 
 각 화면은 **Contract**를 통해 MVI 패턴을 구현합니다.
 
@@ -108,7 +108,7 @@ Side Effect 발생 시 Effect 전달 (Channel/SharedFlow)
 
 ---
 
-## 🛠️ 기술 스택
+## 기술 스택
 
 ### Core
 | 기술 | 버전 | 용도 |
@@ -159,7 +159,7 @@ Side Effect 발생 시 Effect 전달 (Channel/SharedFlow)
 
 ---
 
-## 📂 프로젝트 구조
+## 프로젝트 구조
 
 ```
 compose_mvi/
@@ -236,9 +236,9 @@ compose_mvi/
 
 ---
 
-## 🚀 기능 목록
+## 기능 목록
 
-### ✅ 구현된 기능
+### 구현된 기능
 
 | 기능 | 설명 | 기술 적용                     |
 |------|------|---------------------------|
@@ -263,7 +263,7 @@ compose_mvi/
 
 ---
 
-## 🧩 MVI 패턴 상세
+## MVI 패턴 상세
 
 ### BaseViewModel
 
@@ -306,7 +306,7 @@ class PostsViewModel @Inject constructor(
 
 ---
 
-## 🏃 시작하기
+## 시작하기
 
 ### 요구사항
 
@@ -332,23 +332,19 @@ cd compose_mvi
 
 ---
 
-## 📚 참고 자료
+## 참고 자료
 
 - [Android Compose 공식 문서](https://developer.android.com/jetpack/compose)
-- [MVI Architecture Pattern](https://proandroiddev.com/mvi-architecture-pattern-for-android-58d8e683c146)
+- [MVI Architecture Pattern](https://www.kodeco.com/817602-mvi-architecture-for-android-tutorial-getting-started?utm_source=chatgpt.com)
 - [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - [Hilt DI](https://developer.android.com/training/dependency-injection/hilt-android)
 - [Paging 3](https://developer.android.com/topic/libraries/architecture/paging/v3-overview)
 
 ---
 
-## 🤝 기여하기
+## 기여하기
 
 이 프로젝트는 스터디 목적으로 만들어졌습니다.
 개선사항이나 제안이 있으시면 Issue나 PR을 통해 기여해 주세요!
 
 ---
-
-<p align="center">
-  Made with ❤️ for Android Study
-</p>
