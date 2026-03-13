@@ -1,5 +1,6 @@
 package kr.jhsh.testcompose.presentation.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,18 +26,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * Settings 화면
- * - 순수 UI 컴포넌트로 domain 모듈 의존성 없음
- * - [모듈 간 통신] 이 화면은 외부 모듈과 직접 통신하지 않음 (정적 UI만 표시)
+ * - ViewModel을 통해 닉네임 상태를 관리
  */
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    onNavigateToEditNickname: () -> Unit = {}
+) {
+    val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -44,16 +51,24 @@ fun SettingsScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ProfileSection()
+        ProfileSection(
+            nickname = nickname ?: "JSONPlaceholder App",
+            onClick = onNavigateToEditNickname
+        )
         Spacer(modifier = Modifier.height(8.dp))
         AppInfoSection()
     }
 }
 
 @Composable
-private fun ProfileSection() {
+private fun ProfileSection(
+    nickname: String,
+    onClick: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -79,12 +94,12 @@ private fun ProfileSection() {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "JSONPlaceholder App",
+                text = nickname,
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Clean Architecture + MVI + Multi Module",
+                text = "탭하여 닉네임 변경",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

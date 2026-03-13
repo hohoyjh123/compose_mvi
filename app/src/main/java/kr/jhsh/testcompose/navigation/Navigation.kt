@@ -30,6 +30,9 @@ import kr.jhsh.testcompose.presentation.postdetail.PostDetailScreen
 import kr.jhsh.testcompose.presentation.posts.PostsScreen
 import kr.jhsh.testcompose.presentation.posts.PostsViewModel
 import kr.jhsh.testcompose.presentation.settings.SettingsScreen
+import kr.jhsh.testcompose.presentation.settings.SettingsViewModel
+import kr.jhsh.testcompose.presentation.settings.editnickname.EditNicknameScreen
+import kr.jhsh.testcompose.presentation.settings.editnickname.EditNicknameViewModel
 import kr.jhsh.testcompose.presentation.users.UsersScreen
 import kr.jhsh.testcompose.presentation.users.UsersViewModel
 import kotlin.reflect.typeOf
@@ -148,7 +151,20 @@ private fun NavHostContainer(
                 UsersScreen(viewModel = viewModel)
             }
             composable<Screen.Settings> {
-                SettingsScreen()
+                val viewModel: SettingsViewModel = hiltViewModel()
+                SettingsScreen(
+                    viewModel = viewModel,
+                    onNavigateToEditNickname = {
+                        navController.navigate(Screen.EditNickname)
+                    }
+                )
+            }
+            composable<Screen.EditNickname> {
+                val viewModel: EditNicknameViewModel = hiltViewModel()
+                EditNicknameScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
     }

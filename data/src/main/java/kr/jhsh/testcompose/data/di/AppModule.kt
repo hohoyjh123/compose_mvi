@@ -8,8 +8,10 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import kr.jhsh.testcompose.data.remote.api.JsonPlaceholderApi
 import kr.jhsh.testcompose.data.remote.api.RandomUserApi
+import kr.jhsh.testcompose.data.repository.impl.NicknameRepositoryImpl
 import kr.jhsh.testcompose.data.repository.impl.PostRepositoryImpl
 import kr.jhsh.testcompose.data.repository.impl.UserRepositoryImpl
+import kr.jhsh.testcompose.domain.repository.NicknameRepository
 import kr.jhsh.testcompose.domain.repository.PostRepository
 import kr.jhsh.testcompose.domain.repository.UserRepository
 import okhttp3.MediaType.Companion.toMediaType
@@ -118,5 +120,11 @@ object AppModule {
     @Singleton
     fun provideUserRepository(api: JsonPlaceholderApi): UserRepository {
         return UserRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNicknameRepository(dataStore: kr.jhsh.testcompose.data.local.UserPreferencesDataStore): NicknameRepository {
+        return NicknameRepositoryImpl(dataStore)
     }
 }

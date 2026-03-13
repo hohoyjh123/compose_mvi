@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
+    // DataStore
+    implementation(libs.datastore.preferences)
+
     // Paging
     implementation(libs.paging.runtime)
 
