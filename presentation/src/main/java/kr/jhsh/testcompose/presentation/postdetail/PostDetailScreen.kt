@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -195,16 +196,30 @@ private fun ProfileHeader(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Large Profile Image with Shared Element Transition
-        with(sharedTransitionScope ?: return@Column) {
+        // FIX: Replaced 'return@Column' with proper null checks to avoid Compose Runtime 'Start/end imbalance' error.
+        // Early returns from Composable lambdas can break internal group management in the Compose runtime.
+        if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+            with(sharedTransitionScope) {
+                AsyncImage(
+                    model = post.pictureLarge,
+                    contentDescription = "Profile picture of ${post.name}",
+                    modifier = Modifier
+                        .size(150.dp)
+                        .sharedBounds(
+                            sharedContentState = rememberSharedContentState(key = "image-${post.id}"),
+                            animatedVisibilityScope = animatedVisibilityScope
+                        )
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        } else {
             AsyncImage(
                 model = post.pictureLarge,
                 contentDescription = "Profile picture of ${post.name}",
                 modifier = Modifier
                     .size(150.dp)
-                    .sharedBounds(
-                        sharedContentState = rememberSharedContentState(key = "image-${post.id}"),
-                        animatedVisibilityScope = animatedVisibilityScope!!
-                    )
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentScale = ContentScale.Crop
@@ -408,5 +423,29 @@ private fun ErrorContent(
                 Text("Retry")
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PostDetailContentPreview() {
+    MaterialTheme {
+        PostDetailContent(
+            post = Post(
+                id = "preview-id-2",
+                name = "Jane Smith",
+                email = "jane.smith@example.com",
+                phone = "02-123-4567",
+                cell = "010-9999-8888",
+                gender = "female",
+                age = 31,
+                country = "Canada",
+                city = "Toronto",
+                pictureThumbnail = "",
+                pictureLarge = "",
+                pictureMedium = "",
+                nationality = "CA"
+            )
+        )
     }
 }

@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kr.jhsh.testcompose.domain.model.User
 
@@ -184,5 +185,19 @@ private fun UserItem(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun UsersListContentPreview() {
+    MaterialTheme {
+        UsersListContent(
+            users = listOf(
+                User(id = 1, name = "Leanne Graham", username = "Bret", email = "leanne@example.com"),
+                User(id = 2, name = "Ervin Howell", username = "Antonette", email = "ervin@example.com")
+            ),
+            onUserClick = {}
+        )
     }
 }

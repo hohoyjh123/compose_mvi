@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -228,17 +229,28 @@ private fun PostItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Profile Image with Shared Element Transition
-            with(sharedTransitionScope ?: return@Card) {
+            val imageModifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+
+            if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                with(sharedTransitionScope) {
+                    AsyncImage(
+                        model = post.pictureMedium,
+                        contentDescription = "Profile picture of ${post.name}",
+                        modifier = Modifier
+                            .sharedBounds(
+                                sharedContentState = rememberSharedContentState(key = "image-${post.id}"),
+                                animatedVisibilityScope = animatedVisibilityScope
+                            )
+                            .then(imageModifier)
+                    )
+                }
+            } else {
                 AsyncImage(
                     model = post.pictureMedium,
                     contentDescription = "Profile picture of ${post.name}",
-                    modifier = Modifier
-                        .size(64.dp)
-                        .sharedBounds(
-                            sharedContentState = rememberSharedContentState(key = "image-${post.id}"),
-                            animatedVisibilityScope = animatedVisibilityScope!!
-                        )
-                        .clip(CircleShape)
+                    modifier = imageModifier
                 )
             }
 
@@ -274,5 +286,30 @@ private fun PostItem(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PostItemPreview() {
+    MaterialTheme {
+        PostItem(
+            post = Post(
+                id = "preview-id-1",
+                name = "John Doe",
+                email = "john.doe@example.com",
+                phone = "010-1234-5678",
+                cell = "010-8765-4321",
+                gender = "male",
+                age = 29,
+                country = "Korea",
+                city = "Seoul",
+                pictureThumbnail = "",
+                pictureLarge = "",
+                pictureMedium = "",
+                nationality = "KR"
+            ),
+            onClick = {}
+        )
     }
 }

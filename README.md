@@ -111,11 +111,17 @@ Side Effect 발생 시 Effect 전달 (Channel/SharedFlow)
 ## 기술 스택
 
 ### Core
-| 기술 | 버전       | 용도 |
-|------|----------|------|
-| Kotlin | 2.2.0    | 주요 개발 언어 |
-| Jetpack Compose | 2026.01.00 | UI 프레임워크 |
-| Coroutines | 1.9.0    | 비동기 처리 |
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| Kotlin | 2.2.10 | 주요 개발 언어 |
+| Jetpack Compose BOM | 2026.01.00 | UI 프레임워크 버전 관리 |
+| Coroutines | 1.9.0 | 비동기 처리 |
+
+### Build
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| Android Gradle Plugin | 9.1.0 | Android 빌드 |
+| Gradle Wrapper | 9.3.1 | 빌드 도구 |
 
 ### Architecture
 | 기술 | 용도 |
@@ -127,9 +133,9 @@ Side Effect 발생 시 Effect 전달 (Channel/SharedFlow)
 | **UseCase Pattern** | 비즈니스 로직 분리 |
 
 ### DI (Dependency Injection)
-| 기술 | 버전    | 용도 |
-|------|-------|------|
-| Hilt | 2.55  | 의존성 주입 |
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| Hilt | 2.55 | 의존성 주입 |
 | KSP | 2.3.2 | Annotation Processing |
 
 ### Network
@@ -157,6 +163,20 @@ Side Effect 발생 시 Effect 전달 (Channel/SharedFlow)
 |------|------|------|
 | Coil | 2.7.0 | 이미지 로딩 및 캐싱 |
 
+### Local Storage
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| DataStore Preferences | 1.1.2 | 닉네임 로컬 저장 |
+
+### Testing
+| 기술 | 버전 | 용도 |
+|------|------|------|
+| JUnit4 | 4.13.2 | Unit Test |
+| MockK | 1.13.12 | Mocking |
+| Turbine | 1.2.0 | Flow 테스트 |
+| Coroutines Test | 1.9.0 | Coroutine 테스트 |
+| Compose UI Test | Compose BOM 기준 | UI 테스트 |
+
 ---
 
 ## 프로젝트 구조
@@ -183,10 +203,13 @@ compose_mvi/
 │   │   │   └── User.kt           # 사용자 엔티티
 │   │   ├── repository/
 │   │   │   ├── PostRepository.kt # 게시물 Repository 인터페이스
-│   │   │   └── UserRepository.kt # 사용자 Repository 인터페이스
+│   │   │   ├── UserRepository.kt # 사용자 Repository 인터페이스
+│   │   │   └── NicknameRepository.kt # 닉네임 Repository 인터페이스
 │   │   └── usecase/
 │   │       ├── GetPostsUseCase.kt
-│   │       └── GetUsersUseCase.kt
+│   │       ├── GetUsersUseCase.kt
+│   │       ├── GetNicknameUseCase.kt
+│   │       └── SaveNicknameUseCase.kt
 │   └── build.gradle.kts
 │
 ├── data/                         # 데이터 레이어
@@ -204,10 +227,13 @@ compose_mvi/
 │   │   │   │   └── RandomUserDto.kt
 │   │   │   └── interceptor/
 │   │   │       └── LoggingInterceptor.kt
+│   │   ├── local/
+│   │   │   └── UserPreferencesDataStore.kt
 │   │   └── repository/
 │   │       ├── impl/
 │   │       │   ├── PostRepositoryImpl.kt
-│   │       │   └── UserRepositoryImpl.kt
+│   │       │   ├── UserRepositoryImpl.kt
+│   │       │   └── NicknameRepositoryImpl.kt
 │   │       └── RandomUserPagingSource.kt
 │   └── build.gradle.kts
 │
@@ -230,7 +256,10 @@ compose_mvi/
     │   │   ├── UsersViewModel.kt
     │   │   └── UsersContract.kt
     │   └── settings/
-    │       └── SettingsScreen.kt
+    │       ├── SettingsScreen.kt
+    │       └── editnickname/
+    │           ├── EditNicknameScreen.kt
+    │           └── EditNicknameViewModel.kt
     └── build.gradle.kts
 ```
 
@@ -243,22 +272,28 @@ compose_mvi/
 | 기능 | 설명 | 기술 적용                     |
 |------|------|---------------------------|
 | **Posts** | RandomUser API를 통한 사용자 목록 (무한 스크롤) 목록/상세 | Paging 3, MVI, Navigation |
-| **Users** | JSONPlaceholder API를 통한 게시물 | MVI             |
-| **Settings** | 앱 설정 화면 | Compose                   |
+| **Users** | JSONPlaceholder API를 통한 게시물 | MVI |
+| **Settings** | 앱 설정 및 프로필 섹션 | Compose |
+| **Edit Nickname** | 닉네임 변경/검증/저장 화면 | MVI, DataStore, Navigation |
 
-### 📱 화면 흐름
+### 화면 흐름
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │   Posts     │────▶│ Post Detail │     │   Users     │
 │  (목록/페이징) │     │   (상세)     │     │   (목록)     │
 └─────────────┘     └─────────────┘     └─────────────┘
-       │                                      │
-       └──────────────┬───────────────────────┘
-                      ▼
-               ┌─────────────┐
-               │  Settings   │
-               └─────────────┘
+      │                                      │
+      └──────────────┬───────────────────────┘
+                     ▼
+              ┌─────────────┐
+              │  Settings   │
+              └──────┬──────┘
+                     ▼
+            ┌──────────────────┐
+            │ Edit Nickname    │
+            │ (닉네임 변경 화면) │
+            └──────────────────┘
 ```
 
 ---
@@ -329,6 +364,44 @@ cd compose_mvi
 3. Gradle Sync 실행
 
 4. 앱 실행 (`app` 모듈 선택 후 Run)
+
+---
+
+## 테스트 가이드 (UnitTest / UiTest)
+
+### 테스트 위치
+
+- UnitTest: `presentation/src/test/java/...`
+- UiTest(Instrumentation): `presentation/src/androidTest/java/...`
+
+### 실행 명령어
+
+1. Presentation 모듈 UnitTest 실행
+
+```bash
+./gradlew :presentation:testDebugUnitTest
+```
+
+2. Presentation 모듈 UiTest 실행 (에뮬레이터/디바이스 필요)
+
+```bash
+./gradlew :presentation:connectedDebugAndroidTest
+```
+
+3. 전체 테스트 실행
+
+```bash
+./gradlew test connectedAndroidTest
+```
+
+### 테스트 범위
+
+- **UnitTest**
+  - ViewModel 상태 변화(State)와 Effect 방출 검증
+  - 닉네임 검증 로직(길이/문자/공백) 및 저장 성공/실패 케이스 검증
+- **UiTest**
+  - 주요 화면 렌더링 및 사용자 상호작용(버튼 클릭, 텍스트 입력) 검증
+  - `EditNicknameScreen`의 입력/저장 버튼 활성화 조건 및 안내 문구 검증
 
 ---
 
