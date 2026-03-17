@@ -114,6 +114,12 @@ private fun AppInfoSection() {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Text(
+                text = "앱 정보",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            HorizontalDivider()
             ListItem(
                 headlineContent = { Text("Architecture") },
                 supportingContent = { Text("Clean Architecture + Multi Module") },
@@ -149,6 +155,14 @@ private fun AppInfoSection() {
             ListItem(
                 headlineContent = { Text("API Reference") },
                 supportingContent = { Text("https://jsonplaceholder.typicode.com/ \nhttps://randomuser.me/") },
+                leadingContent = {
+                    Icon(Icons.Default.Info, contentDescription = null)
+                }
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text("버전") },
+                supportingContent = { Text("1.0.0") },
                 leadingContent = {
                     Icon(Icons.Default.Info, contentDescription = null)
                 }

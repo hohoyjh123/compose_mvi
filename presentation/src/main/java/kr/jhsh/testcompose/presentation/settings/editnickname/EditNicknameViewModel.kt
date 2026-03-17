@@ -96,8 +96,7 @@ class EditNicknameViewModel @Inject constructor(
             .onEach { nickname ->
                 setState {
                     copy(
-                        currentNickname = nickname ?: "",
-                        newNickname = ""
+                        currentNickname = nickname ?: ""
                     )
                 }
             }

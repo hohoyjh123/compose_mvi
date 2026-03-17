@@ -24,7 +24,7 @@ class SettingsViewModel @Inject constructor(
     val nickname: StateFlow<String?> = getNicknameUseCase()
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = null
         )
 }
