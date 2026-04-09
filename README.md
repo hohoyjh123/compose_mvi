@@ -1,423 +1,97 @@
-# Compose MVI Study Project
+# compose_mvi
 
-> **Jetpack Compose + MVI + Clean Architecture + Multi Module**을 학습하기 위한 Android 스터디 프로젝트입니다.
-
----
+Compose + MVI 연습하려고 만든 프로젝트입니다.
+크게 복잡한 건 없고, 구조 연습용입니다.
 
 ## 아키텍처 개요
 
-이 프로젝트는 **Clean Architecture**와 **MVI (Model-View-Intent)** 패턴을 기반으로 하며,
-**Multi Module** 구조로 분리되어 있습니다.
+대략 아래 흐름입니다.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         Presentation                        │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │   Screen    │  │  ViewModel  │  │   Contract (MVI)    │  │
-│  │  (Compose)  │◄─┤  (StateFlow)│◄─┤ State | Event | Effect│  │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                           Domain                            │
-│  ┌─────────────────┐  ┌─────────────────────────────────────┐ │
-│  │  UseCase        │  │  Repository Interface               │ │
-│  │  (Business Logic)│  │  (Abstract Data Access)             │ │
-│  └─────────────────┘  └─────────────────────────────────────┘ │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │                    Model (Entity)                        │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                            Data                               │
-│  ┌─────────────────┐  ┌─────────────────────────────────────┐ │
-│  │ RepositoryImpl  │  │  Remote Data Source (API)          │ │
-│  │ (Data Operation)│  │  - Retrofit + OkHttp               │ │
-│  └─────────────────┘  └─────────────────────────────────────┘ │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │              DTO + Mapper (Data Transform)               │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+                        Presentation
+ Screen (Compose) <- ViewModel (StateFlow) <- Contract (State/Event/Effect)
+                              |
+                              v
 
----
+                     Domain                     
+ UseCase | Repository Interface | Model(Entity)
 
-## 모듈 구조
+                              |
+                              v
 
-| 모듈 | 타입 | 설명 | 의존성 |
-|------|------|------|--------|
-| `app` | Application | 앱 진입점, Navigation, Theme, DI 설정 | domain, presentation, data |
-| `domain` | Kotlin Library | UseCase, Repository 인터페이스, Model | - (순수 Kotlin) |
-| `data` | Android Library | Repository 구현체, Remote/Local Data Source | domain |
-| `presentation` | Android Library | UI 화면, ViewModel, MVI Contract | domain |
-
-### 의존성 방향
+                     Data                      
+ RepositoryImpl | Remote API | DTO + Mapper   
 
 ```
-app → presentation → domain ← data
-         ↘_______________↗
-```
 
-- **Domain**은 어떤 모듈에도 의존하지 않습니다 (순수 Kotlin)
-- **Data**와 **Presentation**은 **Domain**에만 의존합니다
-- **App**은 모든 모듈을 조합하여 앱을 구성합니다
+- Domain은 순수 Kotlin
+- Data / Presentation은 Domain을 참조
+- app 모듈이 최종 조합
 
----
+## 모듈
 
-## MVI 패턴 구현
+- `app`: 앱 시작점, 네비게이션, 테마
+- `presentation`: 화면, ViewModel, Contract
+- `domain`: 모델, 유즈케이스, 리포지토리 인터페이스
+- `data`: API/로컬 저장소, 리포지토리 구현
 
-각 화면은 **Contract**를 통해 MVI 패턴을 구현합니다.
-
-```kotlin
-// Contract.kt - 화면의 모든 상태와 이벤트를 한 곳에서 관리
-interface Contract {
-    data class State(
-        val isLoading: Boolean = false,
-        val items: List<Item> = emptyList(),
-        val error: String? = null
-    )
-
-    sealed class Event {
-        data class OnItemClick(val id: String) : Event()
-        data object OnRefresh : Event()
-    }
-
-    sealed class Effect {
-        data class ShowToast(val message: String) : Effect()
-        data class NavigateToDetail(val id: String) : Effect()
-    }
-}
-```
-
-### 데이터 흐름
+의존성 방향:
 
 ```
-User Action
-    ↓
-Event 발생 (onEvent)
-    ↓
-ViewModel에서 State 업데이트 (reduce)
-    ↓
-Compose에서 State 관찰 → UI Recomposition
-    ↓
-Side Effect 발생 시 Effect 전달 (Channel/SharedFlow)
+app -> presentation -> domain <- data
 ```
 
----
+## 기능
+
+- Posts 화면 (목록 + 상세)
+- Users 화면 (Paging)
+- Settings 화면
+- 닉네임 수정 화면 (DataStore 저장)
 
 ## 기술 스택
 
-### Core
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Kotlin | 2.2.10 | 주요 개발 언어 |
-| Jetpack Compose BOM | 2026.01.00 | UI 프레임워크 버전 관리 |
-| Coroutines | 1.9.0 | 비동기 처리 |
+- Kotlin
+- Jetpack Compose
+- Coroutines / Flow
+- Hilt
+- Retrofit / OkHttp
+- Paging 3
+- DataStore
 
-### Build
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Android Gradle Plugin | 9.1.0 | Android 빌드 |
-| Gradle Wrapper | 9.3.1 | 빌드 도구 |
+## 실행
 
-### Architecture
-| 기술 | 용도 |
-|------|------|
-| **MVI** | 단방향 데이터 흐름 패턴 |
-| **Clean Architecture** | 관심사 분리 및 계층화 |
-| **Multi Module** | 빌드 시간 최적화 및 모듈 재사용 |
-| **Repository Pattern** | 데이터 추상화 |
-| **UseCase Pattern** | 비즈니스 로직 분리 |
-
-### DI (Dependency Injection)
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Hilt | 2.55 | 의존성 주입 |
-| KSP | 2.3.2 | Annotation Processing |
-
-### Network
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Retrofit | 2.11.0 | REST API 통신 |
-| OkHttp | 4.12.0 | HTTP 클라이언트 |
-| Kotlin Serialization | 1.8.0 | JSON 직렬화/역직렬화 |
-
-### Navigation & State
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Navigation Compose | 2.8.5 | 화면 간 네비게이션 |
-| ViewModel Compose | 2.8.7 | Compose용 ViewModel |
-| Lifecycle | 2.8.7 | 생명주기 관리 |
-
-### Paging
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Paging 3 | 3.3.6 | 대량 데이터 페이지네이션 |
-| Paging Compose | 3.3.6 | Compose 통합 페이징 |
-
-### Image Loading
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| Coil | 2.7.0 | 이미지 로딩 및 캐싱 |
-
-### Local Storage
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| DataStore Preferences | 1.1.2 | 닉네임 로컬 저장 |
-
-### Testing
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| JUnit4 | 4.13.2 | Unit Test |
-| MockK | 1.13.12 | Mocking |
-| Turbine | 1.2.0 | Flow 테스트 |
-| Coroutines Test | 1.9.0 | Coroutine 테스트 |
-| Compose UI Test | Compose BOM 기준 | UI 테스트 |
-
----
-
-## 프로젝트 구조
-
-```
-compose_mvi/
-├── app/                          # 앱 진입점 모듈
-│   ├── src/main/java/kr/jhsh/testcompose/
-│   │   ├── MainActivity.kt       # 메인 액티비티
-│   │   ├── TestComposeApplication.kt # Application 클래스 (Hilt)
-│   │   ├── navigation/
-│   │   │   ├── Navigation.kt     # 네비게이션 그래프
-│   │   │   └── PostNavType.kt  # 커스텀 NavType
-│   │   └── ui/theme/
-│   │       ├── Color.kt          # 색상 정의
-│   │       ├── Theme.kt          # 테마 설정
-│   │       └── Type.kt           # 타이포그래피
-│   └── build.gradle.kts
-│
-├── domain/                       # 도메인 레이어 (순수 Kotlin)
-│   ├── src/main/java/kr/jhsh/testcompose/domain/
-│   │   ├── model/
-│   │   │   ├── Post.kt           # 게시물 엔티티
-│   │   │   └── User.kt           # 사용자 엔티티
-│   │   ├── repository/
-│   │   │   ├── PostRepository.kt # 게시물 Repository 인터페이스
-│   │   │   ├── UserRepository.kt # 사용자 Repository 인터페이스
-│   │   │   └── NicknameRepository.kt # 닉네임 Repository 인터페이스
-│   │   └── usecase/
-│   │       ├── GetPostsUseCase.kt
-│   │       ├── GetUsersUseCase.kt
-│   │       ├── GetNicknameUseCase.kt
-│   │       └── SaveNicknameUseCase.kt
-│   └── build.gradle.kts
-│
-├── data/                         # 데이터 레이어
-│   ├── src/main/java/kr/jhsh/testcompose/data/
-│   │   ├── di/
-│   │   │   └── AppModule.kt      # Hilt DI 모듈
-│   │   ├── mapper/
-│   │   │   └── EntityMapper.kt   # DTO ↔ Entity 변환
-│   │   ├── remote/
-│   │   │   ├── api/
-│   │   │   │   ├── JsonPlaceholderApi.kt  # Posts API
-│   │   │   │   └── RandomUserApi.kt       # Users API
-│   │   │   ├── dto/
-│   │   │   │   ├── UserDto.kt
-│   │   │   │   └── RandomUserDto.kt
-│   │   │   └── interceptor/
-│   │   │       └── LoggingInterceptor.kt
-│   │   ├── local/
-│   │   │   └── UserPreferencesDataStore.kt
-│   │   └── repository/
-│   │       ├── impl/
-│   │       │   ├── PostRepositoryImpl.kt
-│   │       │   ├── UserRepositoryImpl.kt
-│   │       │   └── NicknameRepositoryImpl.kt
-│   │       └── RandomUserPagingSource.kt
-│   └── build.gradle.kts
-│
-└── presentation/                 # 프레젠테이션 레이어
-    ├── src/main/java/kr/jhsh/testcompose/presentation/
-    │   ├── base/
-    │   │   └── BaseViewModel.kt  # 공통 ViewModel 추상 클래스
-    │   ├── navigation/
-    │   │   └── Screen.kt         # 화면 라우트 정의
-    │   ├── posts/
-    │   │   ├── PostsScreen.kt    # 게시물 목록 화면
-    │   │   ├── PostsViewModel.kt
-    │   │   └── PostsContract.kt  # MVI Contract
-    │   ├── postdetail/
-    │   │   ├── PostDetailScreen.kt
-    │   │   ├── PostDetailViewModel.kt
-    │   │   └── PostDetailContract.kt
-    │   ├── users/
-    │   │   ├── UsersScreen.kt    # 페이징 적용 사용자 목록
-    │   │   ├── UsersViewModel.kt
-    │   │   └── UsersContract.kt
-    │   └── settings/
-    │       ├── SettingsScreen.kt
-    │       └── editnickname/
-    │           ├── EditNicknameScreen.kt
-    │           └── EditNicknameViewModel.kt
-    └── build.gradle.kts
-```
-
----
-
-## 기능 목록
-
-### 구현된 기능
-
-| 기능 | 설명 | 기술 적용                     |
-|------|------|---------------------------|
-| **Posts** | RandomUser API를 통한 사용자 목록 (무한 스크롤) 목록/상세 | Paging 3, MVI, Navigation |
-| **Users** | JSONPlaceholder API를 통한 게시물 | MVI |
-| **Settings** | 앱 설정 및 프로필 섹션 | Compose |
-| **Edit Nickname** | 닉네임 변경/검증/저장 화면 | MVI, DataStore, Navigation |
-
-### 화면 흐름
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Posts     │────▶│ Post Detail │     │   Users     │
-│  (목록/페이징) │     │   (상세)     │     │   (목록)     │
-└─────────────┘     └─────────────┘     └─────────────┘
-      │                                      │
-      └──────────────┬───────────────────────┘
-                     ▼
-              ┌─────────────┐
-              │  Settings   │
-              └──────┬──────┘
-                     ▼
-            ┌──────────────────┐
-            │ Edit Nickname    │
-            │ (닉네임 변경 화면) │
-            └──────────────────┘
-```
-
----
-
-## MVI 패턴 상세
-
-### BaseViewModel
-
-모든 ViewModel은 `BaseViewModel`을 상속받아 MVI 패턴을 일관되게 구현합니다.
-
-```kotlin
-abstract class BaseViewModel<State, Event, Effect> : ViewModel() {
-    // State: UI 상태 (StateFlow)
-    abstract val state: StateFlow<State>
-    
-    // Effect: 일회성 사이드 이펙트 (Channel)
-    abstract val effect: Flow<Effect>
-    
-    // Event 처리
-    abstract fun onEvent(event: Event)
-}
-```
-
-### State 관리
-
-```kotlin
-@HiltViewModel
-class PostsViewModel @Inject constructor(
-    private val getPostsUseCase: GetPostsUseCase
-) : BaseViewModel<PostsContract.State, PostsContract.Event, PostsContract.Effect>() {
-
-    private val _state = MutableStateFlow(PostsContract.State())
-    override val state: StateFlow<PostsContract.State> = _state.asStateFlow()
-
-    override fun onEvent(event: PostsContract.Event) {
-        when (event) {
-            is PostsContract.Event.OnPostClick -> {
-                // 상태 업데이트 또는 Effect 발생
-            }
-            is PostsContract.Event.OnRefresh -> loadPosts()
-        }
-    }
-}
-```
-
----
-
-## 시작하기
-
-### 요구사항
-
-- **Android Studio**: Ladybug or newer
-- **minSdk**: 26
-- **targetSdk**: 35
-- **JDK**: 17
-
-### 실행 방법
-
-1. 저장소 클론
+1. 클론
 
 ```bash
 git clone https://github.com/yunjihun/compose_mvi.git
 cd compose_mvi
 ```
 
-2. Android Studio에서 열기
+1. Android Studio에서 프로젝트 열기
+2. Gradle Sync
+3. `app` 모듈 실행
 
-3. Gradle Sync 실행
+## 테스트
 
-4. 앱 실행 (`app` 모듈 선택 후 Run)
-
----
-
-## 테스트 가이드 (UnitTest / UiTest)
-
-### 테스트 위치
-
-- UnitTest: `presentation/src/test/java/...`
-- UiTest(Instrumentation): `presentation/src/androidTest/java/...`
-
-### 실행 명령어
-
-1. Presentation 모듈 UnitTest 실행
+- UnitTest
 
 ```bash
 ./gradlew :presentation:testDebugUnitTest
 ```
 
-2. Presentation 모듈 UiTest 실행 (에뮬레이터/디바이스 필요)
+- UiTest (디바이스/에뮬레이터 필요)
 
 ```bash
 ./gradlew :presentation:connectedDebugAndroidTest
 ```
 
-3. 전체 테스트 실행
+## 참고
 
-```bash
-./gradlew test connectedAndroidTest
-```
-
-### 테스트 범위
-
-- **UnitTest**
-  - ViewModel 상태 변화(State)와 Effect 방출 검증
-  - 닉네임 검증 로직(길이/문자/공백) 및 저장 성공/실패 케이스 검증
-- **UiTest**
-  - 주요 화면 렌더링 및 사용자 상호작용(버튼 클릭, 텍스트 입력) 검증
-  - `EditNicknameScreen`의 입력/저장 버튼 활성화 조건 및 안내 문구 검증
-
----
-
-## 참고 자료
-
-- [Android Compose 공식 문서](https://developer.android.com/jetpack/compose)
-- [MVI Architecture Pattern](https://www.kodeco.com/817602-mvi-architecture-for-android-tutorial-getting-started?utm_source=chatgpt.com)
-- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [Hilt DI](https://developer.android.com/training/dependency-injection/hilt-android)
+- [Compose](https://developer.android.com/jetpack/compose)
+- [Hilt](https://developer.android.com/training/dependency-injection/hilt-android)
 - [Paging 3](https://developer.android.com/topic/libraries/architecture/paging/v3-overview)
 
----
+## 메모
 
-## 기여하기
-
-이 프로젝트는 스터디 목적으로 만들어졌습니다.
-개선사항이나 제안이 있으시면 Issue나 PR을 통해 기여해 주세요!
-
----
+스터디용 프로젝트입니다.
+필요하면 계속 고쳐가면서 쓰는 용도입니다.
